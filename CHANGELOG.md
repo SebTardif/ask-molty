@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Keep streamed answers flowing when a GitHub blob path has a truncated or invalid percent sequence. Thanks @SebTardif.
 - Bound stalled public artifact proxy fetches and return a retryable timeout. Thanks @SebTardif (#18).
 - Recover from stalled docs, source, and GitHub retrieval requests instead of leaving chats pending. Thanks @SebTardif (#15).
 - Keep streamed answers flowing past malformed JSON and non-text SSE events. Thanks @SebTardif (#10).
