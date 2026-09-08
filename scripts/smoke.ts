@@ -969,7 +969,8 @@ async function smokeMalformedGithubBlobPercent(): Promise<void> {
   const encoder = new TextEncoder();
   const truncated = "https://github.com/openclaw/openclaw/blob/abc1234/src/foo%";
   const invalidHex = "https://github.com/openclaw/openclaw/blob/abc1234/src/%ZZ";
-  const encoded = "https://github.com/openclaw/openclaw/blob/abc1234/src/foo%20bar.ts";
+  const invalidUtf8 = "https://github.com/openclaw/openclaw/blob/abc1234/src/%E0%A4#L2-L4";
+  const encoded = "https://github.com/openclaw/openclaw/blob/abc1234/src/foo%20bar.ts#L3";
 
   await withMockNetwork(
     async (url) => {
@@ -985,7 +986,13 @@ async function smokeMalformedGithubBlobPercent(): Promise<void> {
             controller.enqueue(
               encoder.encode(
                 `data: ${JSON.stringify({
-                  choices: [{ delta: { content: `${truncated} ${invalidHex} ${encoded} done` } }],
+                  choices: [
+                    {
+                      delta: {
+                        content: `${truncated} ${invalidHex} ${invalidUtf8} ${encoded} done`,
+                      },
+                    },
+                  ],
                 })}\n\n`,
               ),
             );
@@ -1008,7 +1015,8 @@ async function smokeMalformedGithubBlobPercent(): Promise<void> {
       const expected =
         "Hello [src/foo%](https://github.com/openclaw/openclaw/blob/abc1234/src/foo%) " +
         "[src/%ZZ](https://github.com/openclaw/openclaw/blob/abc1234/src/%ZZ) " +
-        "[src/foo bar.ts](https://github.com/openclaw/openclaw/blob/abc1234/src/foo%20bar.ts) done";
+        "[src/%E0%A4:L2-L4](https://github.com/openclaw/openclaw/blob/abc1234/src/%E0%A4#L2-L4) " +
+        "[src/foo bar.ts:L3](https://github.com/openclaw/openclaw/blob/abc1234/src/foo%20bar.ts#L3) done";
       if (text !== expected) {
         throw new Error(
           `github blob compact: expected ${JSON.stringify(expected)}, got ${JSON.stringify(text)}`,
